@@ -1,0 +1,50 @@
+services:
+  api:
+    build: .
+    container_name: tradex-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://tradex:tradex@postgres:5432/tradex
+      BROKER_ADAPTER: mock
+      LIVE_TRADING_ENABLED: false
+      AUTO_EXECUTION_ENABLED: false
+      PUBLIC_BASE_URL: http://localhost:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dashboard:
+    build: .
+    container_name: tradex-dashboard
+    restart: unless-stopped
+    entrypoint: ["/dashboard-entrypoint.sh"]
+    ports:
+      - "8501:8501"
+    environment:
+      TRADEX_API_URL: http://api:8000
+    depends_on:
+      - api
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: tradex-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tradex
+      POSTGRES_PASSWORD: tradex
+      POSTGRES_DB: tradex
+    ports:
+      - "5432:5432"
+    volumes:
+      - tradex_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tradex -d tradex"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tradex_pg_data:

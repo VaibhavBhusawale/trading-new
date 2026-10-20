@@ -1,0 +1,30 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# 1. Push repo to GitHub/GitLab
+# 2. Create Neon PostgreSQL, copy connection string
+# 3. In Render: New > Blueprint > connect repo (or New Web Service manually)
+#
+# Use psycopg driver: postgresql+psycopg://user:pass@host/db?sslmode=require
+
+services:
+  - type: web
+    name: tradex-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: BROKER_ADAPTER
+        value: mock
+      - key: LIVE_TRADING_ENABLED
+        value: false
+      - key: AUTO_EXECUTION_ENABLED
+        value: false
+      - key: LLM_ENABLED
+        value: false
+      - key: DATABASE_URL
+        sync: false
+      - key: API_SECRET_KEY
+        generateValue: true
+      - key: PUBLIC_BASE_URL
+        sync: false
